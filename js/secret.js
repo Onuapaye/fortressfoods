@@ -1,6 +1,6 @@
 class Secret {
     constructor(){
-        // this.key = {}
+        this.mapSource = ""
     }
 
     _ApiKeys = {
@@ -13,4 +13,5 @@ class Secret {
     set apiKey(value) {
         this._ApiKeys = value
     }
+
 }
