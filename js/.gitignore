@@ -5,4 +5,4 @@
 *.env
 
 # secrete js file
-/js/secrete.js
+**/js/secret.js
