@@ -1,0 +1,8 @@
+# gitignor file
+*.gitigore
+
+# environment file
+*.env
+
+# secrete js file
+/js/secrete.js
