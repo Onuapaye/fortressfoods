@@ -4,6 +4,7 @@ let map = new MapFortress();
 // let _map;
 let mapDIV = document.getElementById("mapContainer");
 const apiKEY = api.apiKey.googleMAP;
+let _map;
 
 // Dynamically create a script tag
 let scriptTag = document.createElement("script");
@@ -17,7 +18,12 @@ scriptTag.src = `https://maps.googleapis.com/maps/api/js?key=${apiKEY}&callback=
 
 // Attach the function to start the map to the window object
 window.startMAP = () => {
-  map.initMap(mapDIV);
+
+  // initialize the map
+  _map = map.initializeMap(mapDIV);
+
+  // propagate or populate the markers
+  map.propagateMarker(_map);
 };
 
 document.body.appendChild(scriptTag);
