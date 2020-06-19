@@ -24,6 +24,9 @@ window.startMAP = () => {
 
   // propagate or populate the markers
   map.propagateMarker(_map);
+
+  // add the show class to the first item in the ratings list
+  $('#collapse0').addClass('show');
 };
 
 document.body.appendChild(scriptTag);

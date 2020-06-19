@@ -4,7 +4,7 @@ class Secret {
     }
 
     _ApiKeys = {
-        googleMAP: "AIzaSyACfyPWJyg6g5ha1rtxGCYwMTz6D_UpPCs",
+        googleMAP: "AIzaSyAtXL9HlpCEfae66pSD6YcMZdQFRyQrTzM",
         otherAPI: "yet to provide",
     }
     get apiKey() {

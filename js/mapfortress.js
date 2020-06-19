@@ -13,7 +13,7 @@ class MapFortress extends Restaurant {
   }
 
   /**
-   * Initializes the map object when passed with the div element
+   * Initializes the map object when passed with the div element and returns the map object
    * @param {*} mapDIV
    */
   initializeMap(mapDIV) {
@@ -30,30 +30,41 @@ class MapFortress extends Restaurant {
     // set the map marker
     this.marker = this.addMarker(this.map, this.lat, this.lng);
 
-    // MapFortress.propagateMarker(this.map);
-
     return this.map;
   }
 
+  /**
+   * Reads a `JSON` object and propagates it's `lat` and `lng` values on the map which
+   * is passed to it's call else it propagates a default marker
+   * @param {*} _map
+   */
   propagateMarker(_map) {
     // load map data from the fake json restaurant file using jQuery AJAX calls
-    const jsonMarkers = this.getJSON();
+    const jsonData = this.getRestaurantsJSON();
 
-    if (jsonMarkers.length > 0) {
-      for (let i = 0; i < jsonMarkers.length; i++) {
+    if (jsonData.length > 0) {
+      for (let i = 0; i < jsonData.length; i++) {
         let latLng = new google.maps.LatLng(
-          jsonMarkers[i].lat,
-          jsonMarkers[i].long
+          jsonData[i].lat,
+          jsonData[i].long
         );
 
         const marker = new google.maps.Marker({
           position: latLng,
           map: _map,
-          title: jsonMarkers[i].restaurantName,
+          title: jsonData[i].restaurantName,
         });
+
+        map.displayReviews(
+          jsonData[i].ratings,
+          i,
+          jsonData[i].restaurantName,
+          jsonData[i].address,
+          jsonData.length,
+          jsonData[i].lat, jsonData[i].long
+        );
       }
     } else {
-
       // map position and zoom level
       this.mapCenter = { lat: 48.8737815, lng: 2.3501649 };
       this.lat = this.mapCenter.lat;
@@ -70,7 +81,7 @@ class MapFortress extends Restaurant {
   }
 
   /**
-   * Creates the google map object and sets it initial properties
+   * Creates a new map object and returns it passed on the passed parameters
    * @param {*} mapDIV
    * @param {*} mapCenter
    * @param {*} mapZoom
@@ -85,7 +96,7 @@ class MapFortress extends Restaurant {
   }
 
   /**
-   * Add a new marker to the existing map
+   * Returns a marker object after creating it using the parsed parameters
    * @param {*} _map
    * @param {*} _lat
    * @param {*} _long
@@ -105,62 +116,4 @@ class MapFortress extends Restaurant {
   createNewPlace = () => {};
 
   loadPlaces = () => {};
-
-  /**
-   * Returns a json file for fake restaurants, used for testing purposes
-   */
-  getJSON() {
-    var json = [
-      {
-        restaurantName: "Bronco",
-        address: "39 Rue des Petites Écuries, 75010 Paris",
-        lat: 48.8737815,
-        long: 2.3501649,
-        ratings: [
-          {
-            stars: 4,
-            comment: "Great! But not many veggie options.",
-          },
-          {
-            stars: 5,
-            comment: "My favorite restaurant!",
-          },
-        ],
-      },
-      {
-        restaurantName: "Babalou",
-        address: "4 Rue Lamarck, 75018 Paris",
-        lat: 48.8865035,
-        long: 2.3442197,
-        ratings: [
-          {
-            stars: 5,
-            comment: "Tiny pizzeria next to Sacre Coeur!",
-          },
-          {
-            stars: 3,
-            comment: "Meh, it was fine.",
-          },
-        ],
-      },
-      {
-        restaurantName: "Bismark Foods",
-        address: "5 Rue du Lion d'Or, 94400 Paris",
-        lat: 48.79623,
-        long: 2.37058,
-        ratings: [
-          {
-            stars: 5,
-            comment: "A cool joint for the friends and family!",
-          },
-          {
-            stars: 3,
-            comment: "I will always be here to chill small.",
-          },
-        ],
-      },
-    ];
-
-    return json;
-  }
 }
