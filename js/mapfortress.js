@@ -10,6 +10,7 @@ class MapFortress extends Restaurant {
     this.activePlace = {};
     this.mapMarkers = [];
     this.mapZoom = 0;
+    this.infoWindow;
   }
 
   /**
@@ -111,6 +112,54 @@ class MapFortress extends Restaurant {
     });
 
     return _marker;
+  }
+
+  /**
+   * Gets the current user `Geolocation` when passed with the map object. This is achieved only when the user accepts
+   * the prompt from Geolocation wanting to know the user location
+   * @param {*} _map 
+   */
+  getCurrentUserLocation(_map){
+    this.infoWindow = new google.maps.InfoWindow;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((userPosition)=>{
+        let position = {
+          lat: userPosition.coords.latitude,
+          lng: userPosition.coords.longitude
+        };
+
+        this.infoWindow.setPosition(position);
+        
+        // show the current user location with a different color marker
+        this.marker = this.addMarker(_map, position.lat, position.lng);
+        this.marker.setIcon(new google.maps.MarkerImage('http://maps.google.com/mapfiles/ms/icons/green-dot.png'));
+        this.marker.icon.scaledSize = new google.maps.Size(50, 50);
+        this.marker.setAnimation(google.maps.Animation.BOUNCE);
+        this.marker.setTitle('U are here');
+
+        this.infoWindow.setContent('User location found successfully.');
+        this.infoWindow.open(_map);
+        _map.setCenter(position);
+      }, () => {
+        this.handleLocationError(true, this.infoWindow, _map.getCenter());
+      });
+    } else {
+      // browser doe not support google Geolocation
+      this.handleLocationError(false, this.infoWindow, _map.getCenter());
+    }
+  }
+
+  /**
+   * Error handling message to indicate if a `User's` was successfully Geolocated or not and shows the appropriate error message
+   * @param {*} browserHasGeolocation 
+   * @param {*} infoWindow 
+   * @param {*} position 
+   */
+  handleLocationError(browserHasGeolocation, infoWindow, position) {
+    infoWindow.setPosition(position);
+    infoWindow.setContent(browserHasGeolocation ? 'Error: Geolocation failed.' : 'Error: Your browser does not support geolocation.');
+    infoWindow.open(this.map);
   }
 
   createNewPlace = () => {};

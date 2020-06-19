@@ -32,7 +32,7 @@ class Restaurant {
    */
   displayReviews(_ratingsRecord, _recordCounter, _restaurantName, _restaurantAddress, _lat, _lng) {
     let ratingsDIV = $(".ratings-accordion");
-console.log(`====>>> ${apiKEY}`)
+
     ratingsDIV.append(
     `<div class="card">
         <div class="card-header" id="heading${_recordCounter}">
@@ -124,7 +124,7 @@ getStreetViewURL(_address, _lat, _lng){
       },
       {
         restaurantName: "Bismark Foods",
-        address: "5 Rue du Lion d'Or, 94400 Paris",
+        address: "3 Rue du Lion d'Or, 94400 Paris",
         lat: 48.79623,
         long: 2.37058,
         ratings: [
