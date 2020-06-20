@@ -8,7 +8,6 @@ class MapFortress extends Restaurant {
     this.geoMetry = null;
     this.newCenter = {};
     this.activePlace = {};
-    this.mapMarkers = [];
     this.mapZoom = 0;
     this.infoWindow;
   }
@@ -44,27 +43,38 @@ class MapFortress extends Restaurant {
     const jsonData = this.getRestaurantsJSON();
 
     if (jsonData.length > 0) {
+      let markerArray = [];
       for (let i = 0; i < jsonData.length; i++) {
-        let latLng = new google.maps.LatLng(
-          jsonData[i].lat,
-          jsonData[i].long
-        );
+        let latLng = new google.maps.LatLng(jsonData[i].lat, jsonData[i].long);
 
-        const marker = new google.maps.Marker({
-          position: latLng,
-          map: _map,
-          title: jsonData[i].restaurantName,
+        let _lat = jsonData[i].lat;
+        let _lng = jsonData[i].long;
+        let _name = jsonData[i].restaurantName;
+        let _ratings = jsonData[i].ratings;
+        let _stars = 0;
+
+        // get the ratings value from the ratings array and retrieve the stars
+        Object.keys(_ratings).map(function (key) {
+          _stars = _ratings[key]["stars"];
         });
 
-        map.displayReviews(
+        const _marker = this.addMarker(_map, _lat, _lng, _name, _stars);
+
+        // set a global variable for markers
+        markerArray.push(_marker);
+
+        mapFortress.displayReviews(
           jsonData[i].ratings,
           i,
-          jsonData[i].restaurantName,
+          _name,
           jsonData[i].address,
           jsonData.length,
-          jsonData[i].lat, jsonData[i].long
+          _lat,
+          _lng
         );
       }
+
+      window.markerGLOBAL = markerArray;
     } else {
       // map position and zoom level
       this.mapCenter = { lat: 48.8737815, lng: 2.3501649 };
@@ -114,36 +124,97 @@ class MapFortress extends Restaurant {
     return _marker;
   }
 
+
+  static bis = (ele) => {
+   this.filterMarkerByStars(ele)
+  }
+
+  static filterMarkerByStars(_htmlElement) {
+
+    // retrieve the selected element value from the value attribute
+    const filterType = $(_htmlElement).attr("value");
+
+    let mkr = window.markerGLOBAL;
+
+    $.each(mkr, (index, marker) => {
+      let star = marker.rating;
+      if (filterType === "type0") {
+        if (star <= 2) {
+          marker.setVisible(true);
+        } else {
+          marker.setVisible(false);
+        }
+      }
+
+      if (filterType === "type1") {
+        if (star > 2 && star <= 4) {
+          marker.setVisible(true);
+        } else {
+          marker.setVisible(false);
+        }
+      }
+
+      if (filterType === "type2") {
+        if (star == 4) {
+          marker.setVisible(true);
+        } else {
+          marker.setVisible(false);
+        }
+      }
+
+      if (filterType === "type3") {
+        if (star == 5) {
+          marker.setVisible(true);
+        } else {
+          marker.setVisible(false);
+        }
+      }
+
+      if (filterType === "type4") {
+        marker.setVisible(true);
+      }
+
+    });
+  }
+
+
   /**
    * Gets the current user `Geolocation` when passed with the map object. This is achieved only when the user accepts
    * the prompt from Geolocation wanting to know the user location
-   * @param {*} _map 
+   * @param {*} _map
    */
-  getCurrentUserLocation(_map){
-    this.infoWindow = new google.maps.InfoWindow;
+  getCurrentUserLocation(_map) {
+    this.infoWindow = new google.maps.InfoWindow();
 
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((userPosition)=>{
-        let position = {
-          lat: userPosition.coords.latitude,
-          lng: userPosition.coords.longitude
-        };
+      navigator.geolocation.getCurrentPosition(
+        (userPosition) => {
+          let position = {
+            lat: userPosition.coords.latitude,
+            lng: userPosition.coords.longitude,
+          };
 
-        this.infoWindow.setPosition(position);
-        
-        // show the current user location with a different color marker
-        this.marker = this.addMarker(_map, position.lat, position.lng);
-        this.marker.setIcon(new google.maps.MarkerImage('http://maps.google.com/mapfiles/ms/icons/green-dot.png'));
-        this.marker.icon.scaledSize = new google.maps.Size(50, 50);
-        this.marker.setAnimation(google.maps.Animation.BOUNCE);
-        this.marker.setTitle('U are here');
+          this.infoWindow.setPosition(position);
 
-        this.infoWindow.setContent('User location found successfully.');
-        this.infoWindow.open(_map);
-        _map.setCenter(position);
-      }, () => {
-        this.handleLocationError(true, this.infoWindow, _map.getCenter());
-      });
+          // show the current user location with a different color marker
+          this.marker = this.addMarker(_map, position.lat, position.lng);
+          this.marker.setIcon(
+            new google.maps.MarkerImage(
+              "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+            )
+          );
+          this.marker.icon.scaledSize = new google.maps.Size(50, 50);
+          this.marker.setAnimation(google.maps.Animation.BOUNCE);
+          this.marker.setTitle("U are here");
+
+          this.infoWindow.setContent("User location found successfully.");
+          this.infoWindow.open(_map);
+          _map.setCenter(position);
+        },
+        () => {
+          this.handleLocationError(true, this.infoWindow, _map.getCenter());
+        }
+      );
     } else {
       // browser doe not support google Geolocation
       this.handleLocationError(false, this.infoWindow, _map.getCenter());
@@ -152,13 +223,17 @@ class MapFortress extends Restaurant {
 
   /**
    * Error handling message to indicate if a `User's` was successfully Geolocated or not and shows the appropriate error message
-   * @param {*} browserHasGeolocation 
-   * @param {*} infoWindow 
-   * @param {*} position 
+   * @param {*} browserHasGeolocation
+   * @param {*} infoWindow
+   * @param {*} position
    */
   handleLocationError(browserHasGeolocation, infoWindow, position) {
     infoWindow.setPosition(position);
-    infoWindow.setContent(browserHasGeolocation ? 'Error: Geolocation failed.' : 'Error: Your browser does not support geolocation.');
+    infoWindow.setContent(
+      browserHasGeolocation
+        ? "Error: Geolocation failed."
+        : "Error: Your browser does not support geolocation."
+    );
     infoWindow.open(this.map);
   }
 

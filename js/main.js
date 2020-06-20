@@ -1,10 +1,9 @@
-let api = new Secret();
-let map = new MapFortress();
+let secret = new Secret();
+let mapFortress = new MapFortress();
 
-// let _map;
 let mapDIV = document.getElementById("mapContainer");
-const apiKEY = api.apiKey.googleMAP;
-let _map;
+const apiKEY = secret.apiKey.googleMAP;
+// window._mapGLOBAL;
 
 // Dynamically create a script tag
 let scriptTag = document.createElement("script");
@@ -20,13 +19,16 @@ scriptTag.src = `https://maps.googleapis.com/maps/api/js?key=${apiKEY}&callback=
 window.startMAP = () => {
 
   // initialize the map
-  _map = map.initializeMap(mapDIV);
+  let _map = mapFortress.initializeMap(mapDIV);
+  
+  // get the current user location
+  mapFortress.getCurrentUserLocation(_map);
 
   // propagate or populate the markers
-  map.propagateMarker(_map);
+  mapFortress.propagateMarker(_map);
 
-  // get the current user location
-  map.getCurrentUserLocation(_map);
+  // set a global variable to the map object to be accessible app wide
+  window._mapGLOBAL = _map;
 
   // add the show class to the first item in the ratings list
   $('#collapse0').addClass('show');

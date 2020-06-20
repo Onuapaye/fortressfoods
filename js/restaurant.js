@@ -94,7 +94,7 @@ getStreetViewURL(_address, _lat, _lng){
         ratings: [
           {
             rater: "Lawrencia",  
-            stars: 4,
+            stars: 2,
             comment: "Great! But not many veggie options."
           },
           {
@@ -130,7 +130,7 @@ getStreetViewURL(_address, _lat, _lng){
         ratings: [
           {
             rater: "Mr Kasapa",  
-            stars: 5,
+            stars: 4,
             comment: "A cool joint for the friends and family!"
           },
           {
