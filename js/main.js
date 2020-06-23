@@ -1,37 +1,54 @@
 let secret = new Secret();
 let mapFortress = new MapFortress();
+let placesFortress = new PlacesFortress();
 
 let mapDIV = document.getElementById("mapContainer");
 const apiKEY = secret.apiKey.googleMAP;
-// window._mapGLOBAL;
 
 // Dynamically create a script tag
 let scriptTag = document.createElement("script");
+
+// set the source attribute to the google maps api with the key
+scriptTag.src = `https://maps.googleapis.com/maps/api/js?key=${apiKEY}&libraries=places&callback=startMAP`;
 
 // set the async attribute and defer to true to avoid delay in page load
 scriptTag.async = true;
 scriptTag.defer = true;
 
-// set the source attribute to the google maps api with the key
-scriptTag.src = `https://maps.googleapis.com/maps/api/js?key=${apiKEY}&callback=startMAP`;
+// append the script tag to the body element
+document.body.appendChild(scriptTag);
 
 // Attach the function to start the map to the window object
-window.startMAP = () => {
+startMAP = () => {
 
   // initialize the map
   let _map = mapFortress.initializeMap(mapDIV);
   
   // get the current user location
-  mapFortress.getCurrentUserLocation(_map);
+  mapFortress.showCurrentUserLocation(_map);
 
   // propagate or populate the markers
-  mapFortress.propagateMarker(_map);
+  mapFortress.loadOfflinePlaces(_map);
+  mapFortress.loadOnlinePlaces(_map);
 
   // set a global variable to the map object to be accessible app wide
   window._mapGLOBAL = _map;
 
-  // add the show class to the first item in the ratings list
+  // an event listener to the map's click event
+  window._mapGLOBAL.addListener('click', (event) => {
+    mapFortress.addRestaurant(event, mapFortress.geometry);
+  });
+
+  window.google.maps.event.addListener(_mapGLOBAL, 'dragend', ()=>{alert('map-dragged')});
+
+  // window._mapGLOBAL.addListener('bounds_changed', function(){
+      // placesFortress.loadOnlinePlaces(window._mapGLOBAL);
+  // })
+
+
+  // expands the 1st item by adding the class show
   $('#collapse0').addClass('show');
+
 };
 
-document.body.appendChild(scriptTag);
+
