@@ -4,16 +4,13 @@ class MapFortress extends Restaurant {
     this.mapCenter = {};
     this.map;
     this.marker;
-    this.newPlace = null;
     this.geometry = null;
-    this.newCenter = {};
-    this.activePlace = {};
     this.mapZoom = 0;
     this.infoWindow;
   }
 
   /**
-   * Initializes the map object when passed with the div element and returns the map object
+   * Initializes the `map object` when passed with a div element and returns the `map object`
    * @param {*} mapDIV
    */
   initializeMap(mapDIV) {
@@ -50,25 +47,28 @@ class MapFortress extends Restaurant {
 
         this.lat = _localRestaurants[i].lat;
         this.lng = _localRestaurants[i].long;
-        this.name = _localRestaurants[i].restaurantName;
-        let _ratings = _localRestaurants[i].ratings;
+        this.name = _localRestaurants[i].name;
+        this.address = _localRestaurants[i].address;
+        this.placeId = `local-data-${i}`;
 
-        let _totalRatingsArrayCount = _localRestaurants[i].ratings.length;
+        let _ratings = _localRestaurants[i].reviews;
+
+        let _totalRatingsArrayCount = _localRestaurants[i].reviews.length;
         let _totalStars = 0;
 
         // get the ratings value from the ratings array and retrieve the stars
         Object.keys(_ratings).map(function (key) {
-          _totalStars += _ratings[key]["stars"];
+          _totalStars += _ratings[key]["rating"];
         });
 
         // divide the total stars by the total stars count to get the average rating
-        this.stars = (_totalStars / _totalRatingsArrayCount)
+        this.averageRating = (_totalStars / _totalRatingsArrayCount);
 
         // create markers
         this.marker = this.createMarker(_map, this.lat, this.lng);
-        this.marker.title = this.name;
-        this.marker.rating = this.stars;
-        this.marker.animation = google.maps.Animation.DROP;
+
+        // fetch and show the reviews
+        this.fetchPlaceReviews(true, _localRestaurants[i]);
 
         //push individual markers into the markers array
         markerArray.push(this.marker);
@@ -83,9 +83,9 @@ class MapFortress extends Restaurant {
    * with their respective `markers` and it takes the `Google Map Object` as it's parameter
    * @param {*} _map 
    */
-  loadOnlinePlaces(_map) {
+  loadOnlinePlaces(_map, _drag=false) {
 
-    let _placesService = new google.maps.places.PlacesService(_map);
+    this.placesService = new google.maps.places.PlacesService(_map);
 
     // check if geolocation is enables by the user
     if (navigator.geolocation) {
@@ -93,15 +93,19 @@ class MapFortress extends Restaurant {
       // retrieve the current user position or coordinates and pass it as the places location  
       navigator.geolocation.getCurrentPosition((userPosition) => {
 
-        let _location = new google.maps.LatLng(userPosition.coords.latitude, userPosition.coords.longitude);
+        if (_drag === false) {
+          this.mapCenter = new google.maps.LatLng(userPosition.coords.latitude, userPosition.coords.longitude);
+        } else {
+          this.mapCenter = new google.maps.LatLng(_map.getCenter().lat(), _map.getCenter().lng())
+        }
 
         const _requestOptions = {
-          location: _location,
+          location: this.mapCenter,
           radius: "1500",
           type: ["restaurant"],
         };
 
-        _placesService.nearbySearch(
+        this.placesService.nearbySearch(
             _requestOptions,
           (results, status) => {
 
@@ -111,103 +115,71 @@ class MapFortress extends Restaurant {
                 
               for (let i = 0; i < results.length; i++) {
 
-                this.geometry = { lat: results[i].geometry.location.lat(), lng: results[i].geometry.location.lng()}
+                this.geometry = { lat: results[i].geometry.location.lat(), lng: results[i].geometry.location.lng() };
+                this.name = results[i].name;
+                this.averageRating = results[i].rating;
+                this.address = results[i].vicinity;
+                this.placeId = results[i].place_id;
+
                 this.marker = this.createMarker(_map, this.geometry.lat, this.geometry.lng);
-                this.marker.title = results[i].name;
-                this.marker.rating = results[i].rating;
 
                 // push individual markers into the array of markers
                 markerArray.push(this.marker);
+
+                this.fetchPlaceReviews(false);
               }            
+
               // assign the markers the global markers variable
               window.markerGLOBAL = markerArray;
               
               // set the center of the map to user position
-              _map.setCenter(_location);
+              _map.setCenter(this.mapCenter);
             }
           }
         );
+
       });
     } else {
+      
       // loads only the local json restaurant if user location is not found
       window.markerGLOBAL = this.loadOfflinePlaces(_map);
     }
   }
 
+
   /**
-   * Reads a `JSON` object and propagates it's `lat` and `lng` values on the map which
-   * is passed to it's call else it propagates a default marker
-   * @param {*} _map
+   * Retrieves the location or restaurants details if it's an online (live) using `google places api`
+   * or offline (local or conjured) using the `google street view api`
+   * @param {*} local 
+   * @param {*} _localData 
    */
-  propagateMarker(_map) {
-    // load map data from the fake json restaurant file using jQuery AJAX calls
-    const jsonData = this.getLocalRestaurantsFromJSON();
+  fetchPlaceReviews(local = false, _localData){
+    const _url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${this.placeId}&fields=reviews&key=${apiKEY}`;
+    let onlineDataArray = []
 
-    if (jsonData.length > 0) {
-
-      // let markerArray = [];
-
-      // for (let i = 0; i < jsonData.length; i++) {
-
-      //   this.lat = jsonData[i].lat;
-      //   this.lng = jsonData[i].long;
-      //   this.name = jsonData[i].restaurantName;
-      //   let _ratings = jsonData[i].ratings;
-
-      //   // let _ratingStars = 0;
-      //   let _totalCount = jsonData[i].ratings.length;
-      //   let _totalStars = 0;
-
-      //   // get the ratings value from the ratings array and retrieve the stars
-      //   Object.keys(_ratings).map(function (key) {
-      //     _totalStars += _ratings[key]["stars"];
-      //   });
-
-      //   // divide the total stars by the total stars count to get the average rating
-      //   this.stars = (_totalStars / _totalCount)
-
-      //   // create markers
-      //   const _marker = this.createMarker(_map, this.lat, this.lng);
-      //   console.log("MapFortress -> propagateMarker -> _marker", _marker)
-      //   _marker.title = this.name;
-      //   _marker.rating = this.stars;
-      //   _marker.animation = google.maps.Animation.DROP;
-
-      //   //push individual markers into the markers array
-      //   markerArray.push(_marker);
-
-        //display the reviews
-        // mapFortress.displayReviews(
-        //   jsonData[i].ratings,
-        //   i,
-        //   this.name,
-        //   jsonData[i].address,
-        //   jsonData.length,
-        //   this.lat,
-        //   this.lng
-        // );
-      // }
-
-      // set the global markers variable to the value from the markers array
-      // window.markerGLOBAL = this.loadLocalPlaces(_map);
+    if(local == true){
+      mapFortress.showReviews(_localData);
     } else {
-      // map position and zoom level
-      this.mapCenter = { lat: 48.8737815, lng: 2.3501649 };
-      this.lat = this.mapCenter.lat;
-      this.lng = this.mapCenter.lng;
 
-      this.mapZoom = 12;
+      $.ajax({
+        url: _url,
+        type: 'GET',
+        dataType: 'JSON',
+        async: false,
+        success: (_response, _status)=> {
+          onlineDataArray.push(_response);
 
-      // set _map to a new google map object
-      this.map = this.createMap(mapDIV, this.mapCenter, this.mapZoom);
-
-      // set the map marker
-      this.marker = this.createMarker(this.map, this.lat, this.lng);
-      this.marker.title = _name;
-      this.marker.rating = _stars;
-      this.marker.animation = google.maps.Animation.DROP;
+          let _reviewsDataObject;
+          for (let i = 0; i < onlineDataArray.length; i++) {
+            _reviewsDataObject = onlineDataArray[i].result;
+          }
+          mapFortress.showReviews(_reviewsDataObject);
+        }
+      });
     }
   }
+
+  
 
   /**
    * Creates a new map object and returns it passed on the passed parameters
@@ -235,12 +207,39 @@ class MapFortress extends Restaurant {
     let _marker = new google.maps.Marker({
       position: new google.maps.LatLng(_lat, _lng),
       map: _map,
+      title: this.name,
+      rating: this.averageRating,
+      vicinity: this.address,
+      placeId: this.placeId,
       animation: google.maps.Animation.DROP
     });
 
-    console.log("MapFortress -> createMarker -> _marker", _marker)
     return _marker;
   }
+
+  // static addRestaurantPlace(_form){
+    
+  //   //get the form and serialize it into array
+  //   let form = $(_form).serializeArray();
+
+  //   // get or retrieve form input values
+  //   this.name = form[0].value;
+  //   this.address = form[1].value;
+  //   this.averageRating = form[2].value;
+
+  //   // get the location that was
+  //   this.lat = globalClickedMapCenter.lat;
+  //   this.lng = globalClickedMapCenter.lng;
+
+  //   // create the markers
+  //   this.marker = this.createMarker(_mapGLOBAL, this.lat, this.lng);    
+
+  //   // fetch the location image and show the restaurant on the card with its reviews
+  //   this.fetchPlaceReviews(true, {});
+
+  //   // close the modal window
+  //   $('#bnt-close-add-restaurant-modal').click();
+  // }
 
   /**
    * Filters markers on the map base on ratings (number of stars) and displays or hides them

@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="/css/map.css">
   </head>
 
-  <body>
+  <body ">
     <div class="container-fluid">
       <div class="row">
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center">
@@ -36,12 +36,12 @@
               Filter Restaurants
             </button>
             <div style="width: inherit;" class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              <a class="dropdown-item" href="#" value="type0" onclick="MapFortress.bis(this);">Between 0 to 2 Stars</a>
-              <a class="dropdown-item" href="#" value="type1" onclick="MapFortress.bis(this);">Between 3 to 4 Stars</a>
-              <a class="dropdown-item" href="#" value="type2" onclick="MapFortress.bis(this);">Only Four Stars</a>
-              <a class="dropdown-item" href="#" value="type3" onclick="MapFortress.bis(this);">Only Five Stars</a>
+              <a class="dropdown-item" href="#" value="type0" onclick="MapFortress.filterMarkerStars(this);">Between 0 to 2 Stars</a>
+              <a class="dropdown-item" href="#" value="type1" onclick="MapFortress.filterMarkerStars(this);">Between 3 to 4 Stars</a>
+              <a class="dropdown-item" href="#" value="type2" onclick="MapFortress.filterMarkerStars(this);">Only Four Stars</a>
+              <a class="dropdown-item" href="#" value="type3" onclick="MapFortress.filterMarkerStars(this);">Only Five Stars</a>
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#" value="type4" onclick="MapFortress.bis(this);">Show All Stars</a>
+              <a class="dropdown-item" href="#" value="type4" onclick="MapFortress.filterMarkerStars(this);">Show All Stars</a>
             </div>
           </div>
           <!-- ratings list -->
@@ -54,6 +54,25 @@
       </div>
       <div class="row">
         <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12 text-center"">Made with love by Bismark</div>
+      </div>
+    </div>
+
+    <!-- Review Modal -->
+    <div class="modal fade" id="restaurantModal" data-backdrop="false" tabindex="-1" role="dialog" aria-labelledby="restaurantModalLabel" aria-hidden="true" >
+      <div class="modal-dialog" role="document" >
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="restaurantModalLabel"></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          
+          <!-- Form Starts -->
+          <div id="formContainer"></div>
+          <!-- Form Ends -->
+
+        </div>
       </div>
     </div>
 
@@ -78,7 +97,7 @@
     <script  src="/js/main.js"></script> 
 
     <script>
-      
+
     </script>
   </body>
 </html>
